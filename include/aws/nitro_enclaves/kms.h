@@ -30,6 +30,13 @@
 AWS_EXTERN_C_BEGIN
 
 /**
+ * Aws string values for the AWS Encryption Algorithm used by KMS.
+ */
+AWS_STATIC_STRING_FROM_LITERAL(s_ea_symmetric_default, "SYMMETRIC_DEFAULT");
+AWS_STATIC_STRING_FROM_LITERAL(s_ea_rsaes_oaep_sha_1, "RSAES_OAEP_SHA_1");
+AWS_STATIC_STRING_FROM_LITERAL(s_ea_rsaes_oaep_sha_256, "RSAES_OAEP_SHA_256");
+
+/**
  * Specifies the encryption algorithm that will be used to decrypt the ciphertext.
  */
 enum aws_encryption_algorithm {
@@ -964,6 +971,27 @@ struct aws_nitro_enclaves_kms_client *aws_nitro_enclaves_kms_client_new(
  */
 AWS_NITRO_ENCLAVES_API
 void aws_nitro_enclaves_kms_client_destroy(struct aws_nitro_enclaves_kms_client *client);
+
+/**
+ * Call [AWS KMS Decrypt API](https://docs.aws.amazon.com/kms/latest/APIReference/API_Decrypt.html).
+ * This function blocks and waits for the reply.
+ * This function generates an Attestation Document and calls AWS KMS with enclave-specific parameters.
+ * Calling it from a non-enclave environment will fail.
+ *
+ * @param[in]   client      The AWS KMS client to use for calling the API.
+ * @param[in]   key_id      The ARN or alias of AWS KMS CMK used to encrypt the data key.
+ * @param[in]   ciphertext  The ciphertext to decrypt.
+ * @param[out]  plaintext   The plaintext output of the call. Should be an empty, but non-null aws_byte_buf.
+ * @return                  Returns AWS_OP_SUCCESS if the call succeeds and plaintext is populated.
+ */
+AWS_NITRO_ENCLAVES_API
+int aws_kms_decrypt_blocking_with_key_id(
+    struct aws_nitro_enclaves_kms_client *client,
+    const struct aws_string *key_id,
+    enum aws_encryption_algorithm encryption_algorithm,
+    const struct aws_byte_buf *ciphertext,
+    struct aws_byte_buf *plaintext
+    /* TODO: err_reason */);
 
 /**
  * Call [AWS KMS Decrypt API](https://docs.aws.amazon.com/kms/latest/APIReference/API_Decrypt.html).
