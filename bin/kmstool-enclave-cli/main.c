@@ -217,23 +217,9 @@ static int decrypt(struct app_ctx *app_ctx, struct aws_byte_buf *ciphertext_decr
 
     /* Decrypt the data with KMS. */
     struct aws_byte_buf ciphertext_decrypted;
-    if (app_ctx->key_id == NULL) {
-        rc = aws_kms_decrypt_blocking(client, &ciphertext, &ciphertext_decrypted);
-    } else {
-        if (aws_string_compare(app_ctx->encryption_algorithm, s_ea_symmetric_default) == 0) {
-            rc = aws_kms_decrypt_blocking_with_key_id(
-                client, app_ctx->key_id, AWS_EA_SYMMETRIC_DEFAULT, &ciphertext, &ciphertext_decrypted);
-        } else if (aws_string_compare(app_ctx->encryption_algorithm, s_ea_rsaes_oaep_sha_1) == 0) {
-            rc = aws_kms_decrypt_blocking_with_key_id(
-                client, app_ctx->key_id, AWS_EA_RSAES_OAEP_SHA_1, &ciphertext, &ciphertext_decrypted);
-        } else if (aws_string_compare(app_ctx->encryption_algorithm, s_ea_rsaes_oaep_sha_256) == 0) {
-            rc = aws_kms_decrypt_blocking_with_key_id(
-                client, app_ctx->key_id, AWS_EA_RSAES_OAEP_SHA_256, &ciphertext, &ciphertext_decrypted);
-        } else {
-            fprintf(stderr, "Invalid encryption algorithm\n");
-            exit(1);
-        }
-    }
+    rc = aws_kms_decrypt_blocking(
+        client, app_ctx->key_id, app_ctx->encryption_algorithm, &ciphertext, &ciphertext_decrypted);
+
     aws_byte_buf_clean_up(&ciphertext);
     fail_on(rc != AWS_OP_SUCCESS, "Could not decrypt ciphertext");
 
